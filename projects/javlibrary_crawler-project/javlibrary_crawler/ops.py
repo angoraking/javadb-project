@@ -27,7 +27,7 @@ from .pyproject import pyproject_ops
 simple_python_project = aws_ops_alpha.simple_python_project
 simple_config_project = aws_ops_alpha.simple_config_project
 simple_cdk_project = aws_ops_alpha.simple_cdk_project
-javlibrary_crawler_project = aws_ops_alpha.javlibrary_crawler_project
+javlibrary_crawler_project = aws_ops_alpha.simple_lambda_project
 
 
 def pip_install():

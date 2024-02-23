@@ -72,7 +72,7 @@ class LambdaMixin:
                 function_name=lbd_func_config.name,
                 code=lambda_.Code.from_asset(f"{path_source_zip}"),
                 handler=f"lambda_function.{lbd_func_config.handler}",
-                runtime=lambda_.Runtime.PYTHON_3_9,
+                runtime=lambda_.Runtime.PYTHON_3_10,
                 memory_size=lbd_func_config.memory,
                 timeout=cdk.Duration.seconds(lbd_func_config.timeout),
                 layers=layers,
