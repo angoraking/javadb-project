@@ -57,7 +57,7 @@ jobs:
           node-version: "18"
       - name: 💾 Install CDK in Node
         run: |
-          npm install -g aws-cdk@2.111.0
+          npm install -g aws-cdk@2.130.0
           which cdk
           cdk --version
       - name: 🐍 Setup Python with pip cache
