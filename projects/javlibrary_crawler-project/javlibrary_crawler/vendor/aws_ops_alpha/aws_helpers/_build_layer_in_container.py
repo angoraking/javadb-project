@@ -19,7 +19,7 @@ if str(dir_here) != "/var/task":
     )
 
 # install aws_lambda_layer
-args = ["pip", "install", "aws_lambda_layer>=0.5.1,<1.0.0"]
+args = ["pip", "install", "aws_lambda_layer>=0.5.2,<1.0.0"]
 subprocess.run(args)
 
 # build the lambda layer
