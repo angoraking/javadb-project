@@ -8,7 +8,7 @@ import aws_ops_alpha.api as aws_ops_alpha
 # ------------------------------------------------------------------------------
 # define project name, github organization, and github repository
 project_name = "javadb"
-github_org = "MacHu-GWU"
+github_org = "angoraking"
 github_repo = f"{project_name}-project"
 
 # define multi aws account setup
