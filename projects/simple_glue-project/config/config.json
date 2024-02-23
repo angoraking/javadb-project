@@ -1,0 +1,59 @@
+{
+    "_shared": {
+        // ---------------------------------------------------------------------
+        // shared by all environments
+        // ---------------------------------------------------------------------
+        "*.project_name": "simple_glue",
+        "*.s3uri_artifacts": "s3://bmt-app-devops-us-east-1-artifacts/projects/monorepo_aws/simple_glue/",
+        "*.s3uri_docs": "s3://bmt-app-devops-us-east-1-doc-host/projects/monorepo_aws/",
+        // ---------------------------------------------------------------------
+        // Application related
+        //
+        // please read the :class:`simple_glue.config.define.glue_job.GlueJob`
+        // class to understand the config data model
+        //
+        // note that if a json node been set by two expression multiple times,
+        // the first one will be used
+        // ---------------------------------------------------------------------
+        "*.aws_region": "us-east-1",
+        "*.glue_jobs": {
+            "unnest": {}
+        },
+        // 2.0, 3.0, 4.0
+        // See: https://docs.aws.amazon.com/glue/latest/dg/release-notes.html
+        "*.glue_jobs.*.glue_version": "4.0",
+        // Standard, G.1X, G.2X
+        // See: https://docs.aws.amazon.com/glue/latest/dg/add-job.html
+        "*.glue_jobs.*.worker_type": "G.1X",
+        "*.glue_jobs.*.number_of_workers": 2,
+        "*.glue_jobs.*.max_concurrent_runs": 1,
+        "*.glue_jobs.*.max_retries": 0,
+        "*.glue_jobs.*.timeout": 60,
+        "*.glue_jobs.*.lib_live_version":  null,
+        "*.glue_jobs.*.script_live_version":  null
+    },
+    "devops": {
+        "s3uri_data": "s3://bmt-app-devops-us-east-1-data/projects/simple_glue/",
+        "glue_jobs": {
+            "unnest": {}
+        }
+    },
+    "sbx": {
+        "s3uri_data": "s3://bmt-app-dev-us-east-1-data/projects/simple_glue/",
+        "glue_jobs": {
+            "unnest": {}
+        }
+    },
+    "tst": {
+        "s3uri_data": "s3://bmt-app-test-us-east-1-data/projects/simple_glue/",
+        "glue_jobs": {
+            "unnest": {}
+        }
+    },
+    "prd": {
+        "s3uri_data": "s3://bmt-app-prod-us-east-1-data/projects/simple_glue/",
+        "glue_jobs": {
+            "unnest": {}
+        }
+    }
+}

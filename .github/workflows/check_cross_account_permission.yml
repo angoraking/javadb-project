@@ -1,0 +1,60 @@
+# This GitHub Action workflow assume the OIDC IAM role in the devops AWS account,
+# and test the cross account IAM permission on sbx, tst, prd AWS accounts.
+#
+# GitHub Action secrets:
+#
+# - DEVOPS_AWS_ACCOUNT_ID: devops AWS account id, which is where the ``javadb-github-oidc`` IAM role for GitHub action locate at
+# - SBX_AWS_ACCOUNT_ID: sbx AWS account id
+# - TST_AWS_ACCOUNT_ID: tst AWS account id
+# - PRD_AWS_ACCOUNT_ID: prd AWS account id
+
+name: check_cross_account_permission
+
+# Controls when the action will run.
+on:
+  # Run this workflow every 1 month
+  schedule:
+    - cron: '30 8 1 * *'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Set common environment for all jobs and all steps
+env:
+  AWS_REGION: "us-east-1"
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
+
+jobs:
+  check_cross_account_permission:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git clone the repository
+        uses: actions/checkout@v4
+      - name: 🔐 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          # this role name has to match the ``github_action_open_id_connection.role_name`` field
+          # in ``bootstrap/config.json`` file
+          role-to-assume: arn:aws:iam::${{ secrets.DEVOPS_AWS_ACCOUNT_ID }}:role/javadb-github-oidc
+          role-session-name: sample_role_session
+          aws-region: ${{ env.AWS_REGION }}
+          disable-retry: true
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          # ref: https://github.com/actions/setup-python#caching-packages-dependencies
+          cache: 'pip'
+          cache-dependency-path: bootstrap/requirements.txt
+      - name: 💾 Install Dependencies
+        run: pip install -r bootstrap/requirements.txt
+      - name: 🧪 Test Cross Account IAM permission
+        env:
+          SBX_AWS_ACCOUNT_ID: ${{ secrets.SBX_AWS_ACCOUNT_ID }}
+          TST_AWS_ACCOUNT_ID: ${{ secrets.TST_AWS_ACCOUNT_ID }}
+          PRD_AWS_ACCOUNT_ID: ${{ secrets.PRD_AWS_ACCOUNT_ID }}
+        run: python bootstrap/test_check_cross_account_permission.py
+      - name: === 🛑 END OF THE JOB ===
+        run: echo "END OF THE JOB"
