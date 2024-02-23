@@ -42,4 +42,4 @@ class MainStack(
             cdk.Tags.of(self).add(key, value)
 
         cdk.Tags.of(self).add("tech:git_commit_id", git_repo.git_commit_id)
-        cdk.Tags.of(self).add("tech:git_repo_name", "monorepo_aws-project")
+        cdk.Tags.of(self).add("tech:git_repo_name", "javadb-project")

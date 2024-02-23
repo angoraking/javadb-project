@@ -1,4 +1,4 @@
-monorepo_aws Project
+javadb Project
 ==============================================================================
 This is a seed project for many different type of AWS Projects. It allow developer quickly start many new projects with a lot of common DevOps automation features already setup.
 

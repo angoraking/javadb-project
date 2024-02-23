@@ -1,4 +1,4 @@
-GitHub Action Workflows in monorepo_aws
+GitHub Action Workflows in javadb
 ==============================================================================
 这个项目是一个用单个 Repo 来管理许多个 AWS Project 的 CI/CD 的最佳实践. 使用 GitHub Action 作为 CI/CD 的工具.
 

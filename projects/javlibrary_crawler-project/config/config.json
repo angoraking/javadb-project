@@ -4,8 +4,8 @@
         // shared by all environments
         // ---------------------------------------------------------------------
         "*.project_name": "javlibrary_crawler",
-        "*.s3uri_artifacts": "s3://bmt-app-devops-us-east-1-artifacts/projects/monorepo_aws/javlibrary_crawler/",
-        "*.s3uri_docs": "s3://bmt-app-devops-us-east-1-doc-host/projects/monorepo_aws/",
+        "*.s3uri_artifacts": "s3://bmt-app-devops-us-east-1-artifacts/projects/javadb/javlibrary_crawler/",
+        "*.s3uri_docs": "s3://bmt-app-devops-us-east-1-doc-host/projects/javadb/",
         // ---------------------------------------------------------------------
         // Application related
         //
@@ -20,7 +20,7 @@
             "s3sync": {}
         },
         "*.lambda_functions.*.layers": [
-            "13"
+            "2"
         ],
         "*.lambda_functions.s3sync.timeout": 60,
         "*.lambda_functions.*.timeout": 3,

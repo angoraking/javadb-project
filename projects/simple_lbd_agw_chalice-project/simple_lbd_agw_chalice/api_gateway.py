@@ -22,7 +22,7 @@ artifacts_bucket = "bmt-app-devops-us-east-1-artifacts"
 
 
 def _get_s3_key(env_name: str) -> str:
-    return f"projects/monorepo_aws/{project_name}/lambda/deployed/{env_name}.json"
+    return f"projects/javadb/{project_name}/lambda/deployed/{env_name}.json"
 
 
 def get_api_endpoint(env_name: str, s3_client) -> str:

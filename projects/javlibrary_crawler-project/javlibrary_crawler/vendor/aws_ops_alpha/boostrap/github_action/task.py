@@ -43,7 +43,7 @@ def setup_github_action_open_id_connection(
             role_name=gh_action_role_name,
             oidc_provider_arn=oidc_provider_arn,
             tags={
-                AwsTagNameEnum.tech_project_name.value: "monorepo_aws",
+                AwsTagNameEnum.tech_project_name.value: "javadb",
                 AwsTagNameEnum.tech_env_name: "devops sbx tst prd",
                 AwsTagNameEnum.tech_description: (
                     "setup Github Action open id connection in AWS "

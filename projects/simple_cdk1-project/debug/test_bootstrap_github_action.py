@@ -9,7 +9,7 @@ from simple_cdk1.vendor.aws_ops_alpha.boostrap.github_action.api import (
 bsm_devops = BotoSesManager(profile_name="bmt_app_devops_us_east_1")
 stack_name = "javadb-github-oidc"
 github_org = "MacHu-GWU"
-github_repo = "monorepo_aws-project"
+github_repo = "javadb-project"
 gh_action_role_name = "javadb-github-oidc"
 oidc_provider_arn = f"arn:aws:iam::{bsm_devops.aws_account_id}:oidc-provider/token.actions.githubusercontent.com"
 

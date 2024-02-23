@@ -20,7 +20,7 @@ from .runtime import runtime
 class BotoSesFactory(aws_ops_alpha.AlphaBotoSesFactory):
     def get_env_role_arn(self, env_name: str) -> str:  # pragma: no cover
         aws_account_id = os.environ[f"{env_name.upper()}_AWS_ACCOUNT_ID"]
-        return f"arn:aws:iam::{aws_account_id}:role/monorepo_aws-{env_name}-deployer-us-east-1"
+        return f"arn:aws:iam::{aws_account_id}:role/javadb-{env_name}-deployer-us-east-1"
 
     def get_env_role_session_name(self, env_name: str) -> str: # pragma: no cover
         return f"{env_name}_role_session"

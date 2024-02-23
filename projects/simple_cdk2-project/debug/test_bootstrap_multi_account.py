@@ -33,7 +33,7 @@ workload_account_iam_policy_document = {
 
 devops_role_name = "javadb-github-oidc"
 devops_stack_name = "javadb-devops-deployer-us-east-1"
-devops_policy_name = "monorepo_aws-devops-us-east-1"
+devops_policy_name = "javadb-devops-us-east-1"
 
 artifacts_s3_bucket = "bmt-app-devops-us-east-1-artifacts"
 docs_s3_bucket = "bmt-app-devops-us-east-1-doc-host"
@@ -86,7 +86,7 @@ def run_setup_devops_account_s3_bucket():
         artifacts_s3_bucket=artifacts_s3_bucket,
         docs_s3_bucket=docs_s3_bucket,
         workload_account_iam_permission_setup_list=workload_account_iam_permission_setup_list,
-        artifacts_s3_prefix="projects/monorepo_aws/",
+        artifacts_s3_prefix="projects/javadb/",
         white_list_your_ip=True,
     )
 
