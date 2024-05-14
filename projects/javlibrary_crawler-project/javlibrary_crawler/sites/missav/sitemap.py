@@ -84,26 +84,4 @@ def parse_item_xml(p: Path) -> T.List[ItemUrl]:
         for xhtml in t_url.find_all("xhtml:link"):
             item_url = ItemUrl(lang=xhtml["hreflang"], url=xhtml["href"])
             item_url_list.append(item_url)
-        #     break
-        # break
     return item_url_list
-    # root = ET.fromstring(gzip.decompress(p.read_bytes()).decode("utf-8"))
-    # for loc in root.findall(
-    #     ".//ns:loc",
-    #     namespaces={"ns": "http://www.sitemaps.org/schemas/sitemap/0.9"},
-    # ):
-    #     xhtml_links = loc.findall(
-    #         ".//xhtml:link",
-    #         namespaces={
-    #             "ns": "http://www.sitemaps.org/schemas/sitemap/0.9",
-    #             "xhtml": "http://www.w3.org/1999/xhtml",
-    #         },
-    #     )
-    #     for link in xhtml_links:
-    #         print(link)
-    #         # hreflang = link.get("hreflang")
-    #         # href = link.get("href")
-    #         # print(f"  hreflang: {hreflang}, href: {href}")
-
-    # p_new = Path(str(p) + ".gz")
-    # p_new.write_bytes(gzip.compress(p.read_bytes()))
