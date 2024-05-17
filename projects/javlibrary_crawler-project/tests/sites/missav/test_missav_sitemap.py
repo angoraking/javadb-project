@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from pathlib_mate import Path
-from javlibrary_crawler.sites.missav.sitemap import parse_item_xml
+from javlibrary_crawler.sites.missav.sitemap import parse_actresses_xml, parse_item_xml
+
+
+def test_parse_actresses_xml():
+    p = Path.dir_here(__file__) / "sitemap_actresses_1.xml.gz"
+    actress_url_list = parse_actresses_xml(p)
+    assert len(actress_url_list) == 3 * 13
 
 
 def test_parse_item_xml():

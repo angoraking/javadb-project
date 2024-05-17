@@ -1623,6 +1623,23 @@ poetry = ">=1.6.0,<2.0.0"
 poetry-core = ">=1.7.0,<2.0.0"
 
 [[package]]
+name = "prettytable"
+version = "3.10.0"
+description = "A simple Python library for easily displaying tabular data in a visually appealing ASCII table format"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "prettytable-3.10.0-py3-none-any.whl", hash = "sha256:6536efaf0757fdaa7d22e78b3aac3b69ea1b7200538c2c6995d649365bddab92"},
+    {file = "prettytable-3.10.0.tar.gz", hash = "sha256:9665594d137fb08a1117518c25551e0ede1687197cf353a4fdc78d27e1073568"},
+]
+
+[package.dependencies]
+wcwidth = "*"
+
+[package.extras]
+tests = ["pytest", "pytest-cov", "pytest-lazy-fixtures"]
+
+[[package]]
 name = "ptyprocess"
 version = "0.7.0"
 description = "Run a subprocess in a pseudo terminal"
@@ -2559,6 +2576,25 @@ pymysql = ["pymysql"]
 sqlcipher = ["sqlcipher3_binary"]
 
 [[package]]
+name = "sqlalchemy-mate"
+version = "2.0.0.1"
+description = "A library extend sqlalchemy module, makes CRUD easier."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "sqlalchemy_mate-2.0.0.1-py3-none-any.whl", hash = "sha256:c4bccf5817e0041cd565c795f3c3d4f8f851a76e951eef742d68c70faa1cae03"},
+    {file = "sqlalchemy_mate-2.0.0.1.tar.gz", hash = "sha256:9523bf65ad833abfed546b767bddfc6c366d60cc420bc2e8588e7d08a5d1c481"},
+]
+
+[package.dependencies]
+prettytable = ">=3.0.0,<4.0.0"
+sqlalchemy = ">=2.0.0,<3.0.0"
+
+[package.extras]
+docs = ["Sphinx (==5.3.0)", "docfly (==2.0.3)", "furo (==2023.03.27)", "ipython (==8.10.0)", "nbsphinx (==0.8.12)", "pygments (==2.15.1)", "rstobj (==1.2.1)", "sphinx-copybutton (==0.5.1)", "sphinx-design (==0.5.0)", "sphinx-jinja (==2.0.2)"]
+tests = ["attrs", "pandas", "pg8000", "pytest", "pytest-cov", "superjson"]
+
+[[package]]
 name = "termcolor"
 version = "2.4.0"
 description = "ANSI color formatting for output in terminal"
@@ -2627,13 +2663,13 @@ telegram = ["requests"]
 
 [[package]]
 name = "trove-classifiers"
-version = "2024.4.10"
+version = "2024.5.17"
 description = "Canonical source for classifiers on PyPI (pypi.org)."
 optional = false
 python-versions = "*"
 files = [
-    {file = "trove-classifiers-2024.4.10.tar.gz", hash = "sha256:49f40bb6a746b72a1cba4f8d55ee8252169cda0f70802e3fd24f04b7fb25a492"},
-    {file = "trove_classifiers-2024.4.10-py3-none-any.whl", hash = "sha256:678bd6fcc5218d72e3304e27a608acc9b91e17bd00c3f3d8c968497c843ad98b"},
+    {file = "trove_classifiers-2024.5.17-py3-none-any.whl", hash = "sha256:2ebdddebd43e749ac6b6e9b9aa158ab489603dff147cba8714787729cdb9ea37"},
+    {file = "trove_classifiers-2024.5.17.tar.gz", hash = "sha256:d47a6f1c48803091c3fc81f535fecfeef65b558f2b9e4e83df7a79d17bce8bbf"},
 ]
 
 [[package]]
@@ -2756,6 +2792,17 @@ platformdirs = ">=3.9.1,<5"
 [package.extras]
 docs = ["furo (>=2023.7.26)", "proselint (>=0.13)", "sphinx (>=7.1.2,!=7.3)", "sphinx-argparse (>=0.4)", "sphinxcontrib-towncrier (>=0.2.1a0)", "towncrier (>=23.6)"]
 test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7)", "packaging (>=23.1)", "pytest (>=7.4)", "pytest-env (>=0.8.2)", "pytest-freezer (>=0.4.8)", "pytest-mock (>=3.11.1)", "pytest-randomly (>=3.12)", "pytest-timeout (>=2.1)", "setuptools (>=68)", "time-machine (>=2.10)"]
+
+[[package]]
+name = "wcwidth"
+version = "0.2.13"
+description = "Measures the displayed width of unicode strings in a terminal"
+optional = false
+python-versions = "*"
+files = [
+    {file = "wcwidth-0.2.13-py2.py3-none-any.whl", hash = "sha256:3da69048e4540d84af32131829ff948f1e022c1c6bdb8d6102117aac784f6859"},
+    {file = "wcwidth-0.2.13.tar.gz", hash = "sha256:72ea0c06399eb286d978fdedb6923a9eb47e1c486ce63e9b4e64fc18303972b5"},
+]
 
 [[package]]
 name = "werkzeug"
@@ -2885,20 +2932,20 @@ files = [
 
 [[package]]
 name = "zipp"
-version = "3.18.1"
+version = "3.18.2"
 description = "Backport of pathlib-compatible object wrapper for zip files"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "zipp-3.18.1-py3-none-any.whl", hash = "sha256:206f5a15f2af3dbaee80769fb7dc6f249695e940acca08dfb2a4769fe61e538b"},
-    {file = "zipp-3.18.1.tar.gz", hash = "sha256:2884ed22e7d8961de1c9a05142eb69a247f120291bc0206a00a7642f09b5b715"},
+    {file = "zipp-3.18.2-py3-none-any.whl", hash = "sha256:dce197b859eb796242b0622af1b8beb0a722d52aa2f57133ead08edd5bf5374e"},
+    {file = "zipp-3.18.2.tar.gz", hash = "sha256:6278d9ddbcfb1f1089a88fde84481528b07b0e10474e09dcfe53dad4069fa059"},
 ]
 
 [package.extras]
 docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-lint"]
-testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy", "pytest-ruff (>=0.2.1)"]
+testing = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more-itertools", "pytest (>=6,!=8.1.*)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-ignore-flaky", "pytest-mypy", "pytest-ruff (>=0.2.1)"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.*"
-content-hash = "24813320905bc6042540fb9fccc377cf943f985d9b9dd97dc8a875b420e4cead"
+content-hash = "920c819d0f92b4cb725aeb11a9452bfdd63faf6bde47db91614cbb8e419143d8"
