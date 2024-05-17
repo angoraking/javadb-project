@@ -25,6 +25,18 @@ class AppMixin:
         return self.s3dir_env_data.joinpath("target").to_dir()
 
     @property
+    def s3dir_sites(self: "Env") -> S3Path:
+        return self.s3dir_env_data.joinpath("sites").to_dir()
+
+    @property
+    def s3dir_missav(self: "Env") -> S3Path:
+        return self.s3dir_sites.joinpath("missav").to_dir()
+
+    @property
+    def s3path_missav_crawler_sqlite(self: "Env") -> S3Path:
+        return self.s3dir_env_data.joinpath("missav_crawler.sqlite")
+
+    @property
     def env_vars(self: "Env") -> T.Dict[str, str]:
         """
         Common environment variable for all computational resources in this environment.

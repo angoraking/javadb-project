@@ -1,26 +1,33 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
+import enum
 
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
+import sqlalchemy_mate.api as sam
+
 
 from ..constants import SiteEnum
-from .constants import LangCodeEnum
 
 
-class Base(orm.DeclarativeBase):
-    pass
+class StatusEnum(enum.IntEnum):
+    pending = 10
+    in_progress = 20
+    failed = 30
+    succeeded = 40
+    ignored = 50
 
 
-class ItemUrl(Base):
+Base = orm.declarative_base()
+
+
+class _ItemJob(Base, sam.ExtendedBase, sam.patterns.status_tracker.JobMixin):
     __tablename__ = f"{SiteEnum.missav.value}_item_url"
 
-    url: orm.Mapped[str] = orm.mapped_column(sa.String, primary_key=True)
+    @property
+    def url(self) -> str:
+        return self.id
+
+
+class ItemJob(_ItemJob):
     lang: orm.Mapped[int] = orm.mapped_column(sa.Integer)
-    status: orm.Mapped[int] = orm.mapped_column(sa.Integer)
-    create_at: orm.Mapped[datetime] = orm.mapped_column(sa.DateTime)
-    update_at: orm.Mapped[datetime] = orm.mapped_column(sa.DateTime)
-    lock: orm.Mapped[str] = orm.mapped_column(sa.String, nullable=True)
-    lock_time: orm.Mapped[datetime] = orm.mapped_column(sa.DateTime, nullable=True)
-    data: orm.Mapped[str] = orm.mapped_column(sa.JSON, nullable=True)

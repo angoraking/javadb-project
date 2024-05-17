@@ -6,3 +6,4 @@ dir_missav = dir_home_data / "missav"
 dir_missav.mkdir_if_not_exists()
 dir_missav_sitemap = dir_missav / "sitemap"
 dir_missav_sitemap.mkdir_if_not_exists()
+path_missav_crawler_db = dir_missav / "missav_crawler.sqlite"

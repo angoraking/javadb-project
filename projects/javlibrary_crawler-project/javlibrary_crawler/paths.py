@@ -14,7 +14,6 @@ if runtime.is_local:
     dir_home_project_root.mkdir_if_not_exists()
 dir_home_data = dir_home_project_root / "data"
 dir_home_data.mkdir_if_not_exists()
-path_db = dir_home_data / "javlibrary_crawler.sqlite"
 
 # ------------------------------------------------------------------------------
 # Config Management Related

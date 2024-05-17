@@ -103,15 +103,16 @@ class ItemUrl:
 
 
 def _parse_actress_or_item_xml(p: Path) -> T.List[T.Tuple[str, str]]:
-    lst = list()
     soup = bs4.BeautifulSoup(
         gzip.decompress(p.read_bytes()).decode("utf-8"), features="xml"
     )
+    dct = dict()
     for t_url in soup.find_all("url"):
         for xhtml in t_url.find_all("xhtml:link"):
             lang = xhtml["hreflang"]
             url = xhtml["href"]
-            lst.append((lang, url))
+            dct[url] = (lang, url)
+    lst = list(dct.values())
     return lst
 
 
