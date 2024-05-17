@@ -9,10 +9,10 @@ class LangCodeEnum(BetterIntEnum):
 
     You can use ``LangCodeEnum["zh"].value`` to get the language code value.
     """
-    zh = 1
-    cn = 2
+    zh = 1 # 繁体中文
+    cn = 2 # 简体中文
     en = 3
-    ja = 4
+    ja = 4 # 日文
     ko = 5
     ms = 6
     th = 7

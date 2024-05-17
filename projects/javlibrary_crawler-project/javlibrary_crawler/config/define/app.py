@@ -34,7 +34,7 @@ class AppMixin:
 
     @property
     def s3path_missav_crawler_sqlite(self: "Env") -> S3Path:
-        return self.s3dir_env_data.joinpath("missav_crawler.sqlite")
+        return self.s3dir_missav.joinpath("missav_crawler.sqlite")
 
     @property
     def env_vars(self: "Env") -> T.Dict[str, str]:

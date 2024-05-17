@@ -11,3 +11,6 @@ from .constants import LangCodeEnum
 from .db import StatusEnum
 from .db import Base
 from .db import ItemJob
+from .crawler import HttpError
+from .crawler import MalformedHtmlError
+from .crawler import get_video_detail_html

@@ -15,6 +15,7 @@ from pathlib_mate import Path
 from ...vendor.hashes import hashes, HashAlgoEnum
 
 from .paths import dir_missav_sitemap
+from .constants import LangCodeEnum
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
@@ -92,35 +93,35 @@ class SiteMapSnapshot:
 
 @dataclasses.dataclass
 class ActressUrl:
-    lang: str
     url: str
+    lang: int
 
 
 @dataclasses.dataclass
 class ItemUrl:
-    lang: str
     url: str
+    lang: int
 
 
-def _parse_actress_or_item_xml(p: Path) -> T.List[T.Tuple[str, str]]:
+def _parse_actress_or_item_xml(p: Path) -> T.List[T.Tuple[str, int]]:
     soup = bs4.BeautifulSoup(
         gzip.decompress(p.read_bytes()).decode("utf-8"), features="xml"
     )
     dct = dict()
     for t_url in soup.find_all("url"):
         for xhtml in t_url.find_all("xhtml:link"):
-            lang = xhtml["hreflang"]
             url = xhtml["href"]
-            dct[url] = (lang, url)
+            lang = xhtml["hreflang"]
+            dct[url] = (url, LangCodeEnum[lang].value)
     lst = list(dct.values())
     return lst
 
 
 def parse_actresses_xml(p: Path) -> T.List[ActressUrl]:
     return [
-        ActressUrl(lang=lang, url=url) for lang, url in _parse_actress_or_item_xml(p)
+        ActressUrl(url=url, lang=lang) for url, lang in _parse_actress_or_item_xml(p)
     ]
 
 
 def parse_item_xml(p: Path) -> T.List[ItemUrl]:
-    return [ItemUrl(lang=lang, url=url) for lang, url in _parse_actress_or_item_xml(p)]
+    return [ItemUrl(url=url, lang=lang) for url, lang in _parse_actress_or_item_xml(p)]
