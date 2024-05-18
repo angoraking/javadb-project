@@ -16,6 +16,7 @@ def read_html(filename: str) -> str:
 def test_parse_video_detail_html():
     html = read_html("abf-106-cn.html.gz")
     video_detail = parse_video_detail_html(lang=LangCodeEnum.cn.value, html=html)
+    assert video_detail.image_url == "https://fivetiu.com/abf-106/cover-n.jpg"
     assert (
         video_detail.title
         == "ABF-106 和素人君单独相处了一整天。 Atsushi Nonoura [+45 分钟，附赠仅在 MGS 提供的片段] - 野野浦暖"
@@ -31,6 +32,7 @@ def test_parse_video_detail_html():
 
     html = read_html("fc2-ppv-1579328-cn.html.gz")
     video_detail = parse_video_detail_html(lang=LangCodeEnum.cn.value, html=html)
+    assert video_detail.image_url == "https://fivetiu.com/fc2-ppv-1579328/cover-n.jpg"
     assert (
         video_detail.title
         == "FC2-PPV-1579328 【今日截止】限时3天★终极美少女出炉！私自中出，全脸暴露，现实中不可能有这么调皮、开朗善良的女孩！ ！"

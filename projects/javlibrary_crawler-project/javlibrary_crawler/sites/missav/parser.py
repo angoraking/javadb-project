@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+"""
+这个模块可以对下载下来的 HTML 进行解析, 提取出结构化的数据.
+"""
+
 import typing as T
 import enum
 import dataclasses
@@ -48,6 +52,7 @@ class Label(DataClass):
 
 @dataclasses.dataclass
 class VideoDetail(DataClass):
+    image_url: T.Optional[str] = dataclasses.field(default=None)
     release_date: T.Optional[str] = dataclasses.field(default=None)
     code: T.Optional[str] = dataclasses.field(default=None)
     title: T.Optional[str] = dataclasses.field(default=None)
@@ -60,6 +65,7 @@ class VideoDetail(DataClass):
 
 
 class VideoDetailFieldEnum(str, enum.Enum):
+    image_url = "image_url"
     release_date = "release_date"
     code = "code"
     title = "title"
@@ -106,7 +112,12 @@ span_mapper = {
 }
 
 
-def parse_video_detail_html(lang: int, html: str):
+def parse_video_detail_html(lang: int, html: str) -> T.Optional[VideoDetail]:
+    """
+    从影片详情页面提取出结构化数据. 例如这个页面 https://missav.com/cn/abf-106
+
+    :return: 如果解析失败, 返回 None, 否则返回 VideoDetail 对象.
+    """
     data = dict()
 
     soup = bs4.BeautifulSoup(html, features="html.parser")
@@ -119,7 +130,10 @@ def parse_video_detail_html(lang: int, html: str):
     if div_video_info is None:
         raise ValueError("Cannot find video info div.")
 
-    # 将 <div class_="text-secondary"> 的内容按照第一个 span, 也就是 key 进行映射
+    # 由于原本的 HTML 中的每个 field 并没有一个明确的 class 或者 id, 并且 tag 的顺序
+    # 也是不可靠的, 所以我们需要将这些 div 中的 span 中的文本提取出来作为 key.
+    # 然后便利所有 video detail 的 field, 尝试找到对应的 div. 如果找不到说明这个 video
+    # 没有这个 field.
     key_to_div_text_secondary_mapper = {}
     for div_text_secondary in div_video_info.find_all("div", class_="text-secondary"):
         span = div_text_secondary.find("span")
@@ -129,7 +143,15 @@ def parse_video_detail_html(lang: int, html: str):
             key = span.text.strip()
             key_to_div_text_secondary_mapper[key] = div_text_secondary
 
+    # --- image_url
+    link = soup.find("link", attrs={"rel": "preload", "as": "image"})
+    if link is None:
+        pass
+    else:
+        data[VideoDetailFieldEnum.image_url.value] = link["href"]
+
     # --- title
+    # title 在封面图下面一点点的位置
     h1 = soup.find("h1")
     if h1 is None:
         raise ValueError("Cannot find title h1.")

@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+"""
+这个模块把 HTTP request 请求封装成函数, 用于下载网页.
+"""
+
 import requests
 
 
