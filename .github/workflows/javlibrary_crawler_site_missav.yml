@@ -4,10 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       user_env_name:
-        type: string
+        type: choice
         description: 'The user defined environment name'
-        required: true
-
+        options:
+          - sbx
+          - tst
+          - prd
 env:
   AWS_REGION: "us-east-1"
   DIR_PROJECT: "projects/javlibrary_crawler-project"
