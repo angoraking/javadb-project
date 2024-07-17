@@ -1,7 +1,7 @@
 name: javlibrary_crawler_site_missav
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       user_env_name:
         type: string
