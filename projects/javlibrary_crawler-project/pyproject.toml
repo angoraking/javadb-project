@@ -25,6 +25,10 @@ boto3 = "1.33.0"
 boto_session_manager = "1.7.2"
 SQLAlchemy = "2.0.30"
 sqlalchemy_mate = "2.0.0.1"
+# AWS DynamoDB ORM
+pynamodb = "6.0.0"
+pynamodb_mate = "6.0.0.3"
+
 # ------------------------------------------------------------------------------
 # AWS DevOps tools
 # ------------------------------------------------------------------------------
@@ -46,8 +50,6 @@ config_patterns = "1.0.6"
 aws_console_url = "1.4.1"
 # build AWS lambda layer and deployment package
 aws_lambda_layer = "0.5.2"
-# build AWS Glue artifact
-aws_glue_artifact = "0.2.1"
 # AWS devops best practices
 #aws_ops_alpha = "0.1.1"
 # ------------------------------------------------------------------------------

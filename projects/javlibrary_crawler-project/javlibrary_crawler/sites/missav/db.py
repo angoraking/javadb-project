@@ -13,7 +13,7 @@ from boto_session_manager import BotoSesManager
 
 from ...vendor.hashes import hashes, HashAlgoEnum
 from ..constants import SiteEnum
-from .crawler import HttpError, MalformedHtmlError, get_video_detail_html
+from .downloader import HttpError, MalformedHtmlError, get_video_detail_html
 
 
 class StatusEnum(enum.IntEnum):

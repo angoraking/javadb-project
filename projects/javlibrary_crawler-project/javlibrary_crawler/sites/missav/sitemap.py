@@ -2,6 +2,7 @@
 
 """
 这个模块负责把 https://missav.com/sitemap.xml 以及里面列出的其他所有的 .xml 文件下载下来.
+这些 xml 文件里面包含了所有待爬取的页面的 URL.
 """
 
 import typing as T
@@ -25,7 +26,7 @@ headers = {
 @dataclasses.dataclass
 class SiteMapSnapshot:
     """
-    由于 sitemap.xml 文件会更新, 所以我们会将这个 sitemap 的一个快照分开保存.
+    由于 sitemap.xml 文件会更新, 所以我们会将这个 sitemap 的每一个快照分开保存.
     """
 
     md5: str = dataclasses.field()
@@ -38,11 +39,38 @@ class SiteMapSnapshot:
     def path_missav_sitemap_xml_gz(self) -> Path:
         return self.dir_sitemap_snapshot / "sitemap.xml.gz"
 
+    def get_item_xml(self, ith: int) -> Path:
+        return self.dir_sitemap_snapshot / f"sitemap_items_{ith}.xml.gz"
+
+    def get_item_xml_list(self) -> T.List[Path]:
+        def filter_func(p: Path):
+            return p.basename.startswith("sitemap_items_") and p.basename.endswith(
+                ".xml.gz"
+            )
+
+        return list(self.dir_sitemap_snapshot.select_file(filters=filter_func))
+
+    def get_actresses_xml(self, ith: int) -> Path:
+        return self.dir_sitemap_snapshot / f"sitemap_actresses_{ith}.xml.gz"
+
+    def get_actresses_xml_list(self) -> T.List[Path]:
+        def filter_func(p: Path):
+            return p.basename.startswith("sitemap_actresses_") and p.basename.endswith(
+                ".xml.gz"
+            )
+
+        return list(self.dir_sitemap_snapshot.select_file(filters=filter_func))
+
     @classmethod
-    def new(cls, md5: T.Optional[str] = None):
+    def new(
+        cls,
+        md5: T.Optional[str] = None,
+    ):
         """
         创建一个新的 SiteMapSnapshot 对象. 创建的过程中会去读取最新的 sitemap.xml 的内容,
          并且用内容的 MD5 hash 作为唯一的 ID.
+
+        :param md5: 如果 MD5 没给定, 说明这是一个全新的
         """
         if md5 is None:
             res = requests.get("https://missav.com/sitemap.xml", headers=headers)
@@ -102,8 +130,25 @@ class ItemUrl:
     url: str
     lang: int
 
+    @classmethod
+    def filter_by_lang(
+        cls,
+        item_url_list: T.Iterable["ItemUrl"],
+        lang_code: LangCodeEnum,
+    ) -> T.List["ItemUrl"]:
+        expected_lang_code = lang_code.value
+        return [
+            item_url
+            for item_url in item_url_list
+            if item_url.lang == expected_lang_code
+        ]
+
 
 def _parse_actress_or_item_xml(p: Path) -> T.List[T.Tuple[str, int]]:
+    """
+    从 sitemap_actresses_123.xml.gz 或者 sitemap_items_123.xml.gz 中提取出所有的
+    URL 和对应的语言代码.
+    """
     soup = bs4.BeautifulSoup(
         gzip.decompress(p.read_bytes()).decode("utf-8"), features="xml"
     )
@@ -118,10 +163,16 @@ def _parse_actress_or_item_xml(p: Path) -> T.List[T.Tuple[str, int]]:
 
 
 def parse_actresses_xml(p: Path) -> T.List[ActressUrl]:
+    """
+    从 sitemap_actresses_123.xml.gz 中提取出所有的 Actress URL
+    """
     return [
         ActressUrl(url=url, lang=lang) for url, lang in _parse_actress_or_item_xml(p)
     ]
 
 
 def parse_item_xml(p: Path) -> T.List[ItemUrl]:
+    """
+    从 解析 sitemap_items_123.xml.gz 中提取出所有的 Item URL
+    """
     return [ItemUrl(url=url, lang=lang) for url, lang in _parse_actress_or_item_xml(p)]
