@@ -3,7 +3,6 @@
 import typing as T
 import gzip
 
-
 from s3pathlib import ContentTypeEnum
 import pynamodb_mate.api as pm
 from javlibrary_crawler.vendor.better_enum import BetterStrEnum
@@ -71,6 +70,7 @@ class TaskZhTW(BaseTask):
         table_name = "javadb-missav-zhTW-status-tracker"
         region = "us-east-1"
         billing_mode = pm.constants.PAY_PER_REQUEST_BILLING_MODE
+
 
     status_and_update_time_index = st.StatusAndUpdateTimeIndex()
 

@@ -4,6 +4,8 @@ import typing as T
 import time
 
 from javlibrary_crawler.utils import to_s3_key_friendly_url
+from javlibrary_crawler.boto_ses import bsm
+import pynamodb_mate.api as pm
 
 from .dynamodb import (
     BaseTask,
@@ -57,6 +59,14 @@ def crawl_todo(
     去 DynamoDB 中找到未完成的任务, 并执行下载任务.
     """
     klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
+
+    # set the right PynamoDB connection
+    with bsm.awscli():
+        klass._connection = None
+        klass.Meta.region = bsm.aws_region
+        conn = pm.Connection()
+        klass.create_table(wait=True)
+
     task: BaseTask
     for task in klass.query_for_unfinished(
         limit=3,
