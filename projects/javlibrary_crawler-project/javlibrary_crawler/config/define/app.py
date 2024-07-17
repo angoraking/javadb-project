@@ -33,6 +33,10 @@ class AppMixin:
         return self.s3dir_sites.joinpath("missav").to_dir()
 
     @property
+    def s3dir_missav_downloads(self: "Env") -> S3Path:
+        return self.s3dir_missav.joinpath("downloads").to_dir()
+
+    @property
     def s3path_missav_crawler_sqlite(self: "Env") -> S3Path:
         return self.s3dir_missav.joinpath("missav_crawler.sqlite")
 

@@ -48,7 +48,16 @@ class SiteMapSnapshot:
                 ".xml.gz"
             )
 
-        return list(self.dir_sitemap_snapshot.select_file(filters=filter_func))
+        def sort_func(p: Path) -> int:
+            return int(p.basename.split("_")[-1].split(".")[0])
+
+        return list(
+            sorted(
+                self.dir_sitemap_snapshot.select_file(filters=filter_func),
+                key=sort_func,
+                reverse=True,
+            )
+        )
 
     def get_actresses_xml(self, ith: int) -> Path:
         return self.dir_sitemap_snapshot / f"sitemap_actresses_{ith}.xml.gz"
@@ -59,7 +68,16 @@ class SiteMapSnapshot:
                 ".xml.gz"
             )
 
-        return list(self.dir_sitemap_snapshot.select_file(filters=filter_func))
+        def sort_func(p: Path) -> int:
+            return int(p.basename.split("_")[-1].split(".")[0])
+
+        return list(
+            sorted(
+                self.dir_sitemap_snapshot.select_file(filters=filter_func),
+                key=sort_func,
+                reverse=True,
+            )
+        )
 
     @classmethod
     def new(

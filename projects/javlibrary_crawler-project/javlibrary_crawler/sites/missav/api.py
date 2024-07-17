@@ -26,3 +26,4 @@ from .downloader import HttpError
 from .downloader import MalformedHtmlError
 from .downloader import get_video_detail_html
 from .crawler import insert_todo_list
+from .crawler import crawl_todo

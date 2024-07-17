@@ -1,18 +1,51 @@
 # -*- coding: utf-8 -*-
 
 import typing as T
+import gzip
 
+
+from s3pathlib import ContentTypeEnum
 import pynamodb_mate.api as pm
 from javlibrary_crawler.vendor.better_enum import BetterStrEnum
 
+from ...config.load import config
+from ...boto_ses import bsm
+from ...utils import get_utc_now
+
 from .constants import LangCodeEnum
+from .downloader import HttpError, MalformedHtmlError, get_video_detail_html
 
 
 st = pm.patterns.status_tracker
+large_attribute = pm.patterns.large_attribute
 
 
-class BaseTask(st.BaseTask):
+class BaseTask(
+    st.BaseTask,
+    large_attribute.LargeAttributeMixin,
+):
+    url: pm.REQUIRED_STR = pm.UnicodeAttribute()
+    html: pm.OPTIONAL_STR = pm.UnicodeAttribute(null=True)
+
     status_and_update_time_index = st.StatusAndUpdateTimeIndex()
+
+    def do_download_task(self):
+        html = get_video_detail_html(self.url)
+        content = gzip.compress(html.encode("utf-8"))
+        s3dir_missav_downloads = config.env.s3dir_missav_downloads
+        self.update_large_attribute_item(
+            s3_client=bsm.s3_client,
+            pk=self.key,
+            sk=None,
+            kvs={self.__class__.html.attr_name: content},
+            bucket=s3dir_missav_downloads.bucket,
+            prefix=s3dir_missav_downloads.key,
+            update_at=get_utc_now(),
+            s3_put_object_kwargs={
+                "ContentType": ContentTypeEnum.app_gzip,
+            },
+            clean_up_when_failed=True,
+        )
 
 
 class TaskJaJp(BaseTask):
@@ -24,7 +57,7 @@ class TaskJaJp(BaseTask):
     status_and_update_time_index = st.StatusAndUpdateTimeIndex()
 
 
-class TaskZhCN(st.BaseTask):
+class TaskZhCN(BaseTask):
     class Meta:
         table_name = "javadb-missav-zhCN-status-tracker"
         region = "us-east-1"
@@ -33,7 +66,7 @@ class TaskZhCN(st.BaseTask):
     status_and_update_time_index = st.StatusAndUpdateTimeIndex()
 
 
-class TaskZhTW(st.BaseTask):
+class TaskZhTW(BaseTask):
     class Meta:
         table_name = "javadb-missav-zhTW-status-tracker"
         region = "us-east-1"

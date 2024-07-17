@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import typing as T
+
+from javlibrary_crawler.utils import to_s3_key_friendly_url
+
 from .dynamodb import (
     BaseTask,
-    DownloadStatusEnum,
     lang_to_step1_mapping,
 )
 from .constants import LangCodeEnum
@@ -40,9 +42,28 @@ def insert_todo_list(
                 )
                 filtered_item_url_list = filtered_item_url_list[:10]
                 for item in filtered_item_url_list:
-                    task = klass.make_and_save(task_id=item.url)
-                    batch.put(task)
+                    task = klass.make_and_save(
+                        task_id=to_s3_key_friendly_url(item.url),
+                        url=item.url,
+                    )
+                    batch.save(task)
 
 
-def crawl():
-    pass
+def crawl_todo(
+    lang_code: LangCodeEnum,
+):
+    """
+    去 DynamoDB 中找到未完成的任务, 并执行下载任务.
+    """
+    klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
+    task: BaseTask
+    for task in klass.query_for_unfinished(
+        limit=3,
+        older_task_first=False,
+    ):
+        with klass.start(
+            task_id=task.task_id,
+            debug=True,
+        ) as exec_ctx:
+            task_on_the_fly: BaseTask = exec_ctx.task
+            task_on_the_fly.do_download_task()
