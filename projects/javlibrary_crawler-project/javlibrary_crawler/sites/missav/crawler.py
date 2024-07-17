@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import typing as T
+import time
 
 from javlibrary_crawler.utils import to_s3_key_friendly_url
 
@@ -67,3 +68,5 @@ def crawl_todo(
         ) as exec_ctx:
             task_on_the_fly: BaseTask = exec_ctx.task
             task_on_the_fly.do_download_task()
+
+        time.sleep(1)
