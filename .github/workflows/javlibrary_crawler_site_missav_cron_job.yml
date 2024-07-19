@@ -31,7 +31,7 @@ jobs:
       - name: Git Clone the Repository
         uses: actions/checkout@v4
         with:
-          ref: javlibrary_crawler/${{ inputs.user_env_name }}/crawler
+          ref: javlibrary_crawler/tst/crawler
       - name: 🔐 Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
