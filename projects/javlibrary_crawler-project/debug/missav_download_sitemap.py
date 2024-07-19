@@ -41,12 +41,12 @@ config: Config
 # 如果是要把下载好的 sitemap 数据作为 todo list 写入 DynamoDB 中, 就运行下面的代码.
 # 记得你要手动记录前一步中的 sitemap.xml 的 MD5 哈希值.
 # ------------------------------------------------------------------------------
-md5 = "4328d4511415a77eea41c3b091eb0e2a"
-missav.insert_todo_list(
-    snapshot_id=md5,
-    lang_code=missav.LangCodeEnum.cn,
-    export_arn=None,
-)
+# md5 = "4328d4511415a77eea41c3b091eb0e2a"
+# missav.insert_todo_list(
+#     snapshot_id=md5,
+#     lang_code=missav.LangCodeEnum.cn,
+#     export_arn=None,
+# )
 
 # ------------------------------------------------------------------------------
 # 如果是要把尝试运行爬虫, 就运行下面的代码.
@@ -59,9 +59,9 @@ missav.insert_todo_list(
 # ------------------------------------------------------------------------------
 # 如果是要把 DynamoDB 中的数据 export 到 S3, 就运行下面的代码.
 # ------------------------------------------------------------------------------
-# missav.export_dynamodb(
-#     lang_code=missav.LangCodeEnum.cn,
-# )
+missav.export_dynamodb(
+    lang_code=missav.LangCodeEnum.cn,
+)
 
 # ------------------------------------------------------------------------------
 # 如果是要把 DynamoDB export 的数据转存为一个本地的 Sqlite 数据库, 就运行下面的代码.

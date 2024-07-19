@@ -43,19 +43,28 @@ class SiteMapSnapshot:
         return self.dir_sitemap_snapshot / f"sitemap_items_{ith}.xml.gz"
 
     def get_item_xml_list(self) -> T.List[Path]:
+        """
+        返回所有的 sitemap_items_*.xml.gz 文件, 按照文件名的数字部分从小到大排序.
+        数字越大的文件里面的 URL 越新.
+        """
+
         def filter_func(p: Path):
             return p.basename.startswith("sitemap_items_") and p.basename.endswith(
                 ".xml.gz"
             )
 
         def sort_func(p: Path) -> int:
+            """
+            按照 sitemap_items_* 中的 * 代表的数字排序.
+            """
             return int(p.basename.split("_")[-1].split(".")[0])
 
+        # 数字小的文件 (旧的文件) 排在前面.
         return list(
             sorted(
                 self.dir_sitemap_snapshot.select_file(filters=filter_func),
                 key=sort_func,
-                reverse=True,
+                reverse=False,
             )
         )
 
@@ -63,19 +72,28 @@ class SiteMapSnapshot:
         return self.dir_sitemap_snapshot / f"sitemap_actresses_{ith}.xml.gz"
 
     def get_actresses_xml_list(self) -> T.List[Path]:
+        """
+        返回所有的 sitemap_actresses_*.xml.gz 文件, 按照文件名的数字部分从小到大排序.
+        数字越大的文件里面的 URL 越新.
+        """
+
         def filter_func(p: Path):
             return p.basename.startswith("sitemap_actresses_") and p.basename.endswith(
                 ".xml.gz"
             )
 
         def sort_func(p: Path) -> int:
+            """
+            按照 sitemap_actresses_* 中的 * 代表的数字排序.
+            """
             return int(p.basename.split("_")[-1].split(".")[0])
 
+        # 数字小的文件 (旧的文件) 排在前面.
         return list(
             sorted(
                 self.dir_sitemap_snapshot.select_file(filters=filter_func),
                 key=sort_func,
-                reverse=True,
+                reverse=False,
             )
         )
 

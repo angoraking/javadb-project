@@ -27,7 +27,7 @@ from ...utils import get_utc_now
 from ...logger import logger
 from ..constants import SiteEnum
 
-from .constants import LangCodeEnum
+from .constants import LangCodeEnum, N_PENDING_SHARD
 from .downloader import HttpError, MalformedHtmlError, get_video_detail_html
 
 

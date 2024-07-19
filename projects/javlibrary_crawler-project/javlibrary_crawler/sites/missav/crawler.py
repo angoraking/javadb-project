@@ -4,6 +4,7 @@ import typing as T
 import os
 import time
 import json
+import math
 import gzip
 from datetime import datetime, timedelta
 
@@ -30,7 +31,12 @@ from javlibrary_crawler.vendor.waiter import Waiter
 
 from .sqlitedb import Base, Step2ParseHtmlStatusEnum, Job
 
-from .constants import LangCodeEnum
+from .constants import (
+    LangCodeEnum,
+    N_PENDING_SHARD,
+    GITHUB_ACTION_RUN_INTERVAL,
+    TASK_PROCESSING_TIME,
+)
 from .paths import dir_missav
 from .sitemap import SiteMapSnapshot, parse_item_xml, ItemUrl
 from .dynamodb import (
@@ -51,6 +57,9 @@ def insert_todo_list(
 ):
     """
     把从 sitemap 中解析出来的, 在 DynamoDB 中不存在的 URL 插入到 DynamoDB 中.
+
+    在插入的时候, 优先插入 返回所有的 sitemap_items_*.xml.gz 文件, 按照文件名的数字部分从大到小排序.
+        因为数字越大的文件里面的 URL 越新.
 
     :param snapshot_id: sitemap 的 MD5 哈希值
     :param lang_code: 语言代码, 这会决定数据会插入到哪个表中
@@ -97,8 +106,13 @@ def crawl_todo(
     klass.set_connection(bsm)
     logger.info(f"working on table {klass.Meta.table_name!r}")
 
+    # Cap the run time of this `crawl_todo` function.
+    max_job_run_time = GITHUB_ACTION_RUN_INTERVAL - 30
+    LIMIT = math.ceil(max_job_run_time / TASK_PROCESSING_TIME / N_PENDING_SHARD)
+    # LIMIT = 1 # for debug only
+
     task_list: T.List[BaseTask] = klass.query_for_unfinished(
-        limit=1,
+        limit=LIMIT,
         older_task_first=False,
     ).all()
     logger.info(f"Got {len(task_list)} URL to crawl.")
@@ -111,8 +125,6 @@ def crawl_todo(
     else:
         start_at = get_utc_now()
 
-    # the max time we can run for this ``crawl_todo`` function
-    max_job_run_time = 270 # 4.5 min
     # the max time we can spend on each download task
     each_download_consumed_time = 5
     end_at = start_at + timedelta(seconds=max_job_run_time)

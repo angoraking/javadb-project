@@ -1,9 +1,9 @@
 # 这个 workflow 是用来在 tst 环境中不断抓取下载 javlibrary 上的 missav 的信息的.
 name: javlibrary_crawler_site_missav_cron_job
 
-on:
-  schedule:
-    - cron: '*/5 * * * *'
+#on:
+#  schedule:
+#    - cron: '*/15 * * * *'
 env:
   AWS_REGION: "us-east-1"
   DIR_PROJECT: "projects/javlibrary_crawler-project"
