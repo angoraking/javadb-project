@@ -112,7 +112,7 @@ def crawl_todo(
         start_at = get_utc_now()
 
     # the max time we can run for this ``crawl_todo`` function
-    max_job_run_time = 300  # 5 min
+    max_job_run_time = 270 # 4.5 min
     # the max time we can spend on each download task
     each_download_consumed_time = 5
     end_at = start_at + timedelta(seconds=max_job_run_time)

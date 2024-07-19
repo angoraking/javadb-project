@@ -1,4 +1,7 @@
-name: javlibrary_crawler_site_missav
+# 这个 workflow 是用来测试 javlibrary_crawler_site_missav_cron_job workflow 的
+# 和 cron job 不同, 这个是手动触发的, 专门用来测试, 这样给了我们能选择 environment 的能力.
+# 两者之间只有触发方式不同, 其他地方都一模一样.
+name: javlibrary_crawler_site_missav_debug
 
 on:
   workflow_dispatch:
