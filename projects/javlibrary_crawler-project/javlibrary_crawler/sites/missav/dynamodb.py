@@ -10,8 +10,14 @@ import gzip
 import base64
 import hashlib
 
-from tenacity import retry, wait_exponential, retry_if_exception_type, stop_after_attempt
+from tenacity import (
+    retry,
+    wait_exponential,
+    retry_if_exception_type,
+    stop_after_attempt,
+)
 from s3pathlib import S3Path, ContentTypeEnum
+from boto_session_manager import BotoSesManager
 import pynamodb_mate.api as pm
 
 from javlibrary_crawler.vendor.better_enum import BetterStrEnum
@@ -78,6 +84,14 @@ class BaseTask(
     html: pm.OPTIONAL_STR = pm.UnicodeAttribute(null=True)
 
     status_and_update_time_index = StatusAndUpdateTimeIndex()
+
+    @classmethod
+    def set_connection(cls, bsm: BotoSesManager):
+        with bsm.awscli():
+            cls._connection = None
+            cls.Meta.region = bsm.aws_region
+            conn = pm.Connection()
+            cls.create_table(wait=True)
 
     @property
     def url(self):

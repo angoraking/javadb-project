@@ -76,7 +76,6 @@ boto_ses_factory = BotoSesFactory(
         EnvNameEnum.prd.value: "bmt_app_prod_us_east_1",
     },
     default_app_env_name=EnvNameEnum.sbx.value,
-    # default_app_env_name=EnvNameEnum.tst.value,
 )
 
 bsm = boto_ses_factory.bsm
@@ -84,7 +83,8 @@ bsm = boto_ses_factory.bsm
 # you can uncomment this line to force to use certain env
 # from your local laptop to run application code, tests, ...
 # ----------------------------------------------------------------------
-# bsm = boto_ses_factory.bsm_prd
+# bsm = boto_ses_factory.bsm_tst
 
+bsm.print_who_am_i()
 # Set default s3pathlib boto session
 context.attach_boto_session(boto_ses=bsm.boto_ses)

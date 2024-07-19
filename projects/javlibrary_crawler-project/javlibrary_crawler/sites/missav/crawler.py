@@ -59,8 +59,8 @@ def insert_todo_list(
     """
     sitemap_snapshot = SiteMapSnapshot.new(md5=snapshot_id)
     klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
+    klass.set_connection(bsm)
     logger.info(f"working on table {klass.Meta.table_name!r}")
-    klass.create_table(wait=True)
     with klass.batch_write() as batch:
         # filter by only
         if export_arn:
@@ -94,15 +94,8 @@ def crawl_todo(
     去 DynamoDB 中找到未完成的任务, 并执行下载任务.
     """
     klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
+    klass.set_connection(bsm)
     logger.info(f"working on table {klass.Meta.table_name!r}")
-
-    bsm.print_who_am_i()
-    # set the right PynamoDB connection
-    with bsm.awscli():
-        klass._connection = None
-        klass.Meta.region = bsm.aws_region
-        conn = pm.Connection()
-        klass.create_table(wait=True)
 
     task_list: T.List[BaseTask] = klass.query_for_unfinished(
         limit=1,
@@ -162,6 +155,7 @@ def export_dynamodb(
     将 DynamoDB 整个表导出到 S3 中.
     """
     klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
+    klass.set_connection(bsm)
     logger.info(f"working on table {klass.Meta.table_name!r}")
     url = klass.get_table_overview_console_url()
     print(f"preview table: {url}")
@@ -231,6 +225,7 @@ def dynamodb_to_sqlite(
     if remove_existing:  # pragma: no cover
         path_sqlite.remove_if_exists()
     klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
+    klass.set_connection(bsm)
     logger.info(f"working on table {klass.Meta.table_name!r}")
     logger.info("Information")
     with logger.indent():
