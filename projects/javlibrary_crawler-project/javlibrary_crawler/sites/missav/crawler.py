@@ -94,7 +94,7 @@ def crawl_todo(
     """
     klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
     logger.info(f"working on table {klass.Meta.table_name!r}")
-
+    bsm.print_who_am_i()
     # set the right PynamoDB connection
     with bsm.awscli():
         klass._connection = None
