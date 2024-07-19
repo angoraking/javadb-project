@@ -8,7 +8,9 @@
 import typing as T
 import gzip
 import dataclasses
-import xml.etree.ElementTree as ET
+
+# import xml.etree.ElementTree as ET
+import lxml.etree
 
 import bs4
 import requests
@@ -180,10 +182,10 @@ class ItemUrl:
         ]
 
 
-def _parse_actress_or_item_xml(p: Path) -> T.List[T.Tuple[str, int]]:
+def _parse_actress_or_item_xml_v1(p: Path) -> T.List[T.Tuple[str, int]]:
     """
     从 sitemap_actresses_123.xml.gz 或者 sitemap_items_123.xml.gz 中提取出所有的
-    URL 和对应的语言代码.
+    URL 和对应的语言代码. 这是 beautifulsoup 的实现, 性能较差.
     """
     soup = bs4.BeautifulSoup(
         gzip.decompress(p.read_bytes()).decode("utf-8"), features="xml"
@@ -196,6 +198,26 @@ def _parse_actress_or_item_xml(p: Path) -> T.List[T.Tuple[str, int]]:
             dct[url] = (url, LangCodeEnum[lang].value)
     lst = list(dct.values())
     return lst
+
+
+def _parse_actress_or_item_xml_v2(p: Path) -> T.List[T.Tuple[str, int]]:
+    """
+    从 sitemap_actresses_123.xml.gz 或者 sitemap_items_123.xml.gz 中提取出所有的
+    URL 和对应的语言代码.
+    """
+    root = lxml.etree.fromstring(gzip.decompress(p.read_bytes()))
+    namespaces = {"xhtml": "http://www.w3.org/1999/xhtml"}
+    links = root.xpath("//xhtml:link", namespaces=namespaces)
+    dct = dict()
+    for link in links:
+        lang = link.get("hreflang")
+        url = link.get("href")
+        dct[url] = (url, LangCodeEnum[lang].value)
+    lst = list(dct.values())
+    return lst
+
+
+_parse_actress_or_item_xml = _parse_actress_or_item_xml_v2
 
 
 def parse_actresses_xml(p: Path) -> T.List[ActressUrl]:
