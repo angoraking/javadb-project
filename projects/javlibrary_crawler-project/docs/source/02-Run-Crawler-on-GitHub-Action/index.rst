@@ -6,11 +6,11 @@ Overview
 ------------------------------------------------------------------------------
 通常这种爬虫项目应该以容器或是 AWS Lambda 的形式部署在服务器上运行. 但是为了省钱, 我决定把整个 GitHub Repo 开源, 这样就能免费使用 GitHub Action, 让 crawler 运行在 CI Job 中.
 
+下面我们来仔细探讨一下用 GitHub 来跑爬虫程序是否可行呢?
+
 
 可行性分析
 ------------------------------------------------------------------------------
-下面我们来仔细探讨一下用 GitHub 来跑爬虫程序是否可行呢?
-
 **GitHub Action 对 Public Repo 是否完全免费**
 
 是的, 官方 `About billing for GitHub Actions <https://docs.github.com/en/billing/managing-billing-for-github-actions/about-billing-for-github-actions>`_ 一文中说了:
@@ -37,3 +37,13 @@ Overview
 - 获得 workflow run 的状态: 可以, 请参考 `Get a workflow run <https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#get-a-workflow-run>`_ 这个 API 的文档.
 - 手动停止 workflow run 的状态: 可以, 请参考 `Cancel a workflow run <https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#cancel-a-workflow-run>`_ 这个 API 的文档.
 - 列出所有属于某个 workflow 的 workflow run: 可以, 请参考 `List workflow runs for a workflow <https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-workflow>`_ 这个 API 的文档.
+
+
+Crawler Orchestration
+------------------------------------------------------------------------------
+爬虫的本质是从一堆 todo URL list 中拿出一个 URL, 然后从对应的 HTMl 里面提取数据. 而很多爬虫项目都是分布式的. 如果要用 GitHub Action 来运行爬虫, 这里一个关键的问题就是如何避免多个并行爬虫同时对一个 URL 进行抓取.
+
+下面是我的解决方案:
+
+1. 同一时间只运行一个爬虫, 完全不并行执行. 因为对目标网站大量的并发请求会造成网站挂掉, 同时也可能会被封 IP. 所以并行运行多个爬虫是不好的. 我们索性就使用一个爬虫, 虽然慢一点, 只要爬取的速度能跟上网站更新的速度就够了.
+2. 使用数据库来进行 Status tracking, 每个 URL 在数据库中就是一条 Record. 当对 URL 进行抓取时我们对其进行上锁, 并用数据库记录抓取是否成功.

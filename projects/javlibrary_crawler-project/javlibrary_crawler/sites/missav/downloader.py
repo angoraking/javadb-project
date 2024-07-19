@@ -32,7 +32,7 @@ def get_video_detail_html(url: str) -> str:
     """
     下载影片详细信息的 HTML. 例如 https://missav.com/cn/abf-106
     """
-    res = requests.get(url, headers=headers)
+    res = requests.get(url, headers=headers, timeout=3)
     if res.status_code == 200:
         html = res.text
         if '<link rel="preload" as="image"' in html:

@@ -55,57 +55,25 @@ missav.crawl_todo(
     lang_code=missav.LangCodeEnum.cn,
 )
 
-# engine = create_sqlite_engine(missav.path_missav_crawler_db)
 
-# with sqlite_round_trip(
-#     bsm=bsm,
-#     s3path=config.env.s3path_missav_crawler_sqlite,
-#     path=missav.path_missav_crawler_db,
-# ) as engine:
-#     missav.Base.metadata.create_all(engine)
-#     path_xml = sitemap_snapshot.dir_sitemap_snapshot / "sitemap_items_1.xml.gz"
-#     item_url_list = missav.parse_item_xml(path_xml)
-#     allowed_lang_code_set = {
-#         missav.LangCodeEnum.ja.value,
-#         missav.LangCodeEnum.zh.value,
-#         missav.LangCodeEnum.cn.value,
-#     }
-#     with orm.Session(engine) as ses:
-#         for item_url in item_url_list:
-#             if item_url.lang in allowed_lang_code_set:
-#                 item_job = missav.ItemJob.create(
-#                     id=item_url.url,
-#                     lang=item_url.lang,
-#                     status=missav.StatusEnum.pending.value,
-#                 )
-#                 ses.add(item_job)
-#         ses.commit()
+# ------------------------------------------------------------------------------
+# 如果是要把 DynamoDB 中的数据 export 到 S3, 就运行下面的代码.
+# ------------------------------------------------------------------------------
+# missav.export_dynamodb(
+#     lang_code=missav.LangCodeEnum.cn,
+# )
 
+# ------------------------------------------------------------------------------
+# 如果是要把 DynamoDB export 的数据转存为一个本地的 Sqlite 数据库, 就运行下面的代码.
+# ------------------------------------------------------------------------------
+# missav.dynamodb_to_sqlite(
+#     lang_code=missav.LangCodeEnum.cn,
+#     export_name="01721229501033-b054a93e",
+# )
 
-# with sqlite_round_trip(
-#     bsm=bsm,
-#     s3path=config.env.s3path_missav_crawler_sqlite,
-#     path=missav.path_missav_crawler_db,
-# ) as engine:
-#     with orm.Session(engine) as ses:
-#         stmt = (
-#             sa.select(missav.ItemJob)
-#             .where(
-#                 missav.ItemJob.status == missav.StatusEnum.pending,
-#                 missav.ItemJob.lang == missav.LangCodeEnum.cn.value,
-#             )
-#             .order_by(sa.asc(missav.ItemJob.update_at))
-#             .limit(10)
-#         )
-#         item_job_list = ses.scalars(stmt).all()
-#         job_id_list = [job.id for job in item_job_list]
-#
-#     for job_id in job_id_list:
-#         missav.ItemJob.do_job(
-#             engine=engine,
-#             id=job_id,
-#             bsm=bsm,
-#             s3dir_missav=config.env.s3dir_missav,
-#             skip_error=True,
-#             debug=True,
-#         )
+# ------------------------------------------------------------------------------
+# 如果是要从所有已经下载好的 HTML 中提取 video details 数据, 就运行下面的代码.
+# ------------------------------------------------------------------------------
+# missav.extract_video_details(
+#     lang_code=missav.LangCodeEnum.cn,
+# )
