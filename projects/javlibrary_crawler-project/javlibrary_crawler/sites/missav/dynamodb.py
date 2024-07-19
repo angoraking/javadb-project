@@ -91,7 +91,7 @@ class BaseTask(
             cls._connection = None
             cls.Meta.region = bsm.aws_region
             conn = pm.Connection()
-            cls.create_table(wait=True)
+            cls.exists()
 
     @property
     def url(self):
