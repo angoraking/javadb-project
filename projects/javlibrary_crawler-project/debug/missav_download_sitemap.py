@@ -37,6 +37,18 @@ config: Config
 # for item in filtered_item_url_list[:10]:
 #     print(item)
 
+
+# ------------------------------------------------------------------------------
+#
+# ------------------------------------------------------------------------------
+md5 = "4328d4511415a77eea41c3b091eb0e2a"
+missav.import_dynamodb_table(
+    snapshot_id=md5,
+    lang_code=missav.LangCodeEnum.cn,
+    # _first_k_file=1,
+    # _first_k_url=50,
+)
+
 # ------------------------------------------------------------------------------
 # 如果是要把下载好的 sitemap 数据作为 todo list 写入 DynamoDB 中, 就运行下面的代码.
 # 记得你要手动记录前一步中的 sitemap.xml 的 MD5 哈希值.

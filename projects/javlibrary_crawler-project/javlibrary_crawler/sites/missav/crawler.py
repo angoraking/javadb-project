@@ -181,7 +181,10 @@ def import_dynamodb_table(
             ],
         ),
     )
-    print(res)
+    import_arn = res["ImportTableDescription"]["ImportArn"]
+    with logger.indent():
+        logger.info(f"import_arn = {import_arn}")
+        logger.info("be patient, it will take a while to import the table.")
 
 
 @logger.emoji_block(

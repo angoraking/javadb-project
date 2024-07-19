@@ -19,6 +19,15 @@ def to_s3_key_friendly_url(url) -> str:
     return url.replace(":", "_").replace("/", "_")
 
 
+def prompt_to_confirm():
+    """
+    Prompt the user to confirm the action.
+    """
+    confirm = input("Are you sure? (Y/N): ")
+    if confirm.lower().strip() != "y":
+        raise KeyboardInterrupt("User cancelled the operation.")
+
+
 def preview_export_details(
     bsm: BotoSesManager,
     table_name: str,

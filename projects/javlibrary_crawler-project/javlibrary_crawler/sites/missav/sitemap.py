@@ -174,6 +174,10 @@ class ItemUrl:
         item_url_list: T.Iterable["ItemUrl"],
         lang_code: LangCodeEnum,
     ) -> T.List["ItemUrl"]:
+        """
+        对于每个语言的 Item URL, 一个 sitemap_items_*.xml.gz 文件里面 (去重后)
+        会有至多 1000 个 URL.
+        """
         expected_lang_code = lang_code.value
         return [
             item_url

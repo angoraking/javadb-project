@@ -33,6 +33,10 @@ class AppMixin:
         return self.s3dir_sites.joinpath("missav").to_dir()
 
     @property
+    def s3path_missav_import_dynamodb_table_temp_json_gz(self: "Env") -> S3Path:
+        return self.s3dir_missav.joinpath("import_dynamodb_table_temp.json.gz")
+
+    @property
     def s3dir_missav_downloads(self: "Env") -> S3Path:
         return self.s3dir_missav.joinpath("downloads").to_dir()
 
