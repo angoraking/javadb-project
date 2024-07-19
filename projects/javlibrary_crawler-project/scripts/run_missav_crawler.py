@@ -7,11 +7,7 @@
 
 import javlibrary_crawler.sites.missav.api as missav
 
-# missav.insert_todo_list(
-#     snapshot_id="4328d4511415a77eea41c3b091eb0e2a",
-#     lang_code=missav.LangCodeEnum.cn,
-# )
-# missav.crawl_todo(
-#     lang_code=missav.LangCodeEnum.cn,
-# )
+missav.crawl_todo(
+    lang_code=missav.LangCodeEnum.cn,
+)
 

@@ -6,6 +6,7 @@ on:
       user_env_name:
         type: choice
         description: 'The user defined environment name'
+        default: 'sbx'
         options:
           - sbx
           - tst
@@ -30,12 +31,15 @@ jobs:
       # note that the ${{ env.ENV_NAME }} context is not available, we have to use ${{ inputs.user_env_name }}
       name: ${{ inputs.user_env_name }}
     env:
-      USER_ENV_NAME: ${{ inputs.user_env_name }}
+#      USER_ENV_NAME: ${{ inputs.user_env_name }}
+      USER_ENV_NAME: tst
     steps:
       - name: === 💾 PREPARATION ===
         run: echo "PREPARATION"
       - name: Git Clone the Repository
         uses: actions/checkout@v4
+        with:
+          ref: javlibrary_crawler/tst/crawler
       - name: 🔐 Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
