@@ -39,6 +39,7 @@ from .dynamodb import (
 )
 from .downloader import MalformedHtmlError
 
+
 @logger.emoji_block(
     msg="Insert todo List to DynamoDB",
     emoji="📥",
@@ -94,6 +95,7 @@ def crawl_todo(
     """
     klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
     logger.info(f"working on table {klass.Meta.table_name!r}")
+
     bsm.print_who_am_i()
     # set the right PynamoDB connection
     with bsm.awscli():
@@ -117,12 +119,14 @@ def crawl_todo(
         start_at = get_utc_now()
 
     # the max time we can run for this ``crawl_todo`` function
-    max_job_run_time = 300 # 5 min
+    max_job_run_time = 300  # 5 min
     # the max time we can spend on each download task
     each_download_consumed_time = 5
     end_at = start_at + timedelta(seconds=max_job_run_time)
     for task in task_list:
         now = get_utc_now()
+        logger.info(f"====== Working on {task.url} ======")
+        logger.info(f"now is {now}, this job will end at {end_at}")
         if now >= end_at:
             logger.info("Time is up!")
             break
@@ -132,14 +136,13 @@ def crawl_todo(
             logger.info("Time is up!")
             break
 
-        logger.info(f"====== Working on {task.url} ======")
         try:
             with klass.start(
                 task_id=task.task_id,
                 debug=True,
             ) as exec_ctx:
                 task_on_the_fly: BaseTask = exec_ctx.task
-                task_on_the_fly.do_download_task() # this function has auto retry
+                task_on_the_fly.do_download_task()  # this function has auto retry
         except MalformedHtmlError as e:
             pass
         except Exception as e:

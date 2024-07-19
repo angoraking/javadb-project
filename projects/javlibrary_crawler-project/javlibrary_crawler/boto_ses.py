@@ -76,6 +76,7 @@ boto_ses_factory = BotoSesFactory(
         EnvNameEnum.prd.value: "bmt_app_prod_us_east_1",
     },
     default_app_env_name=EnvNameEnum.sbx.value,
+    # default_app_env_name=EnvNameEnum.tst.value,
 )
 
 bsm = boto_ses_factory.bsm
