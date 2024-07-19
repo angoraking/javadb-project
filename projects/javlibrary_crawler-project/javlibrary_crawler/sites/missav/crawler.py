@@ -58,8 +58,8 @@ def insert_todo_list(
     """
     把从 sitemap 中解析出来的, 在 DynamoDB 中不存在的 URL 插入到 DynamoDB 中.
 
-    在插入的时候, 优先插入 返回所有的 sitemap_items_*.xml.gz 文件, 按照文件名的数字部分从大到小排序.
-        因为数字越大的文件里面的 URL 越新.
+    在插入的时候, 优先插入数字小的 sitemap_items_*.xml.gz 文件 (旧的文件). 这样能保证比较新的
+    url 会有比较新的 update time, 这样在 query 的时候也会优先处理比较新的 url.
 
     :param snapshot_id: sitemap 的 MD5 哈希值
     :param lang_code: 语言代码, 这会决定数据会插入到哪个表中
@@ -84,7 +84,7 @@ def insert_todo_list(
                 filtered_item_url_list = ItemUrl.filter_by_lang(
                     item_url_list, lang_code
                 )
-                filtered_item_url_list = filtered_item_url_list[:20]
+                filtered_item_url_list = filtered_item_url_list[:1000]
                 with logger.indent():
                     logger.info(f"Got {len(filtered_item_url_list)} url to insert")
                 for item in filtered_item_url_list:

@@ -59,9 +59,9 @@ config: Config
 # ------------------------------------------------------------------------------
 # 如果是要把 DynamoDB 中的数据 export 到 S3, 就运行下面的代码.
 # ------------------------------------------------------------------------------
-missav.export_dynamodb(
-    lang_code=missav.LangCodeEnum.cn,
-)
+# missav.export_dynamodb(
+#     lang_code=missav.LangCodeEnum.cn,
+# )
 
 # ------------------------------------------------------------------------------
 # 如果是要把 DynamoDB export 的数据转存为一个本地的 Sqlite 数据库, 就运行下面的代码.
