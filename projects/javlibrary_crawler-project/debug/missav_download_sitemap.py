@@ -39,26 +39,32 @@ config: Config
 
 
 # ------------------------------------------------------------------------------
-#
+# 手动创建 DynamoDB import 所需的 data 文件.
+# 扫描所有 sitemap_items_*.xml.gz 文件, 从中提取 URL, 写入本地临时文件, 上传到 S3.
+# 这里的 snapshot_id 是上面 ``print(f"{sitemap_snapshot.md5 = }")`` 这行代码打印出的值
 # ------------------------------------------------------------------------------
-md5 = "4328d4511415a77eea41c3b091eb0e2a"
-missav.import_dynamodb_table(
-    snapshot_id=md5,
-    lang_code=missav.LangCodeEnum.cn,
-    # _first_k_file=1,
-    # _first_k_url=50,
-)
+# if __name__ == "__main__": # 这个函数用到了多线程, 所以必须在 __main__ 里跑
+#     snapshot_id = "4328d4511415a77eea41c3b091eb0e2a"
+#     missav.create_dynamodb_import_data_files(
+#         snapshot_id=snapshot_id,
+#         lang_code=missav.LangCodeEnum.cn,
+#         # _first_k_file=1,
+#         # _first_k_url=50,
+#     )
 
 # ------------------------------------------------------------------------------
-# 如果是要把下载好的 sitemap 数据作为 todo list 写入 DynamoDB 中, 就运行下面的代码.
-# 记得你要手动记录前一步中的 sitemap.xml 的 MD5 哈希值.
+# 把下载好的 sitemap_items_*.xml.gz 文件中的数据作为 pending task list 写入 DynamoDB 中.
+# 这里用到了 import Dynamodb data from S3.
+# 这里的 snapshot_id 是上面 ``print(f"{sitemap_snapshot.md5 = }")`` 这行代码打印出的值
 # ------------------------------------------------------------------------------
-# md5 = "4328d4511415a77eea41c3b091eb0e2a"
-# missav.insert_todo_list(
-#     snapshot_id=md5,
-#     lang_code=missav.LangCodeEnum.cn,
-#     export_arn=None,
-# )
+# if __name__ == "__main__":  # 这个函数用到了多线程, 所以必须在 __main__ 里跑
+#     snapshot_id = "4328d4511415a77eea41c3b091eb0e2a"
+#     missav.import_dynamodb_data(
+#         snapshot_id=snapshot_id,
+#         lang_code=missav.LangCodeEnum.cn,
+#         # _first_k_file=1,
+#         # _first_k_url=50,
+#     )
 
 # ------------------------------------------------------------------------------
 # 如果是要把尝试运行爬虫, 就运行下面的代码.

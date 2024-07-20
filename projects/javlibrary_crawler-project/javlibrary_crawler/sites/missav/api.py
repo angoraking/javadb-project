@@ -22,9 +22,10 @@ from .dynamodb import lang_to_step1_mapping
 from .downloader import HttpError
 from .downloader import MalformedHtmlError
 from .downloader import get_video_detail_html
-from .crawler import import_dynamodb_table
-from .crawler import insert_todo_list
-from .crawler import crawl_todo
+from .crawler import create_dynamodb_import_data_files
+from .crawler import import_dynamodb_data
+from .crawler import insert_pending_tasks
+from .crawler import crawl_pending_tasks
 from .crawler import export_dynamodb
 from .crawler import dynamodb_to_sqlite
 from .crawler import extract_video_details

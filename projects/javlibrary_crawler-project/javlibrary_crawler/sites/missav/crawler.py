@@ -9,12 +9,13 @@ import time
 import json
 import math
 import gzip
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
+from mpire import WorkerPool
+from pathlib_mate import Path
 from s3pathlib import S3Path, ContentTypeEnum
 import aws_console_url.api as aws_console_url
 import aws_arns.api as aws_arns
-import pynamodb_mate.api as pm
 import sqlalchemy.orm as orm
 import sqlalchemy_mate.api as sam
 
@@ -52,17 +53,164 @@ from .downloader import MalformedHtmlError
 
 
 @logger.emoji_block(
-    msg="Insert todo List to DynamoDB",
+    msg="Create DynamoDB Import Data Files",
     emoji="📥",
 )
-def import_dynamodb_table(
+def create_dynamodb_import_data_files(
     snapshot_id: str,
     lang_code: LangCodeEnum,
     _first_k_file: T.Optional[int] = None,
     _first_k_url: T.Optional[int] = None,
 ):
-    """ """
+    """
+    Generate data, format it for DynamoDB import, and upload to S3.
+
+    This function creates the necessary data, structures it in a format
+    compatible with DynamoDB import specifications, and uploads the
+    resulting file to a designated S3 bucket. The uploaded file can then
+    be used for bulk import into DynamoDB.
+
+    这个函数使用了多线程, 会并行处理多个 sitemap_items_*.xml.gz 文件, 并将每个文件分别上传到
+    S3. 我测试了一下, 在 11 个核心的 MacBook Pro M3 上, 处理 366 个 XML 文件,
+    单线程要 214 秒, 多线程要 42 秒, 速度提升了 5 倍.
+
+    注, 如果你不是为了 debug 或测试, 不要直接使用这个函数. :func:`import_dynamodb_data`
+    函数已经包含了这一步. 直接调用它既可.
+    """
+
+    def func(
+        shared_objects: T.Tuple[
+            T.Type[BaseTask],
+            datetime,
+            Path,
+        ],
+        path: Path,
+    ):
+        (
+            klass,  # DynamoDB ORM 对象
+            start_time,  # 这个 start_time 会作为基准用来生成每个 url 的 create time
+            dir_missav_temp,  # 这个目录用于存放生成的临时文件
+        ) = shared_objects
+
+        logger.info(f"Working on {path.basename} file")
+        fname = path.basename.split(".")[0]
+        path_temp_json = dir_missav_temp.joinpath(f"{fname}.json")
+        path_temp_json_gzip = dir_missav_temp.joinpath(f"{fname}.json.gz")
+        logger.info("Write import dynamodb table data to temp json file")
+        with logger.indent():
+            logger.info(f"preview at: file://{path_temp_json}")
+
+        # 从 xml 中提取 url 列表
+        item_url_list = parse_item_xml(path)
+        filtered_item_url_list = ItemUrl.filter_by_lang(
+            item_url_list=item_url_list,
+            lang_code=lang_code,
+        )
+        if _first_k_url:  # pragma: no cover
+            filtered_item_url_list = filtered_item_url_list[:_first_k_url]
+        with logger.indent():
+            logger.info(f"Got {len(filtered_item_url_list)} url to insert")
+
+        # 根据 url 生成 DynamoDB json 并写入临时文件
+        ith_file = int(path.basename.split("_")[-1].split(".")[0])
+        _start_time = start_time + timedelta(seconds=ith_file)
+        ith_url = 0
+        with path_temp_json.open("a") as f:
+            for item in filtered_item_url_list:
+                ith_url += 1
+                create_time = _start_time + timedelta(microseconds=ith_url)
+                task = klass.make(
+                    task_id=item.url,
+                    create_time=create_time,
+                    update_time=create_time,
+                )
+                f.write(json.dumps({"Item": task.serialize()}) + "\n")
+        path_temp_json_gzip.write_bytes(gzip.compress(path_temp_json.read_bytes()))
+
+        # 将临时文件上传到 S3
+        s3dir_temp = config.env.s3dir_missav_dynamodb_import_data.joinpath(
+            snapshot_id
+        ).to_dir()
+        s3path_temp_json_gzip = s3dir_temp.joinpath(f"{fname}.json.gz")
+        logger.info("Upload temp json file to S3")
+        with logger.indent():
+            logger.info(f"preview at: {s3path_temp_json_gzip.console_url}")
+        s3path_temp_json_gzip.upload_file(
+            path=str(path_temp_json_gzip),
+            overwrite=True,
+            bsm=bsm,
+            extra_args=dict(
+                ContentType=ContentTypeEnum.app_gzip,
+                Metadata={
+                    "sitemap_snapshot_id": snapshot_id,
+                    "lang_code": lang_code.name,
+                },
+            ),
+        )
+
     sitemap_snapshot = SiteMapSnapshot.new(md5=snapshot_id)
+    path_list = sitemap_snapshot.get_item_xml_list()
+    if _first_k_file:  # pragma: no cover
+        path_list = path_list[:_first_k_file]
+
+    klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
+    start_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    dir_missav_temp = dir_missav.joinpath("temp")
+    dir_missav_temp.remove_if_exists()
+    dir_missav_temp.mkdir_if_not_exists()
+
+    shared_objects = (klass, start_time, dir_missav_temp)
+
+    st = get_utc_now()
+
+    # --- multi threads mode
+    kwargs_list = [dict(path=path) for path in path_list]
+    with WorkerPool(
+        n_jobs=os.cpu_count(),
+        shared_objects=shared_objects,
+    ) as pool:
+        pool.map(func, kwargs_list)
+
+    # --- single thread mode
+    # for path in path_list:
+    #     func(shared_objects, path)
+
+    elapse = (get_utc_now() - st).total_seconds()
+    logger.info(f"create_dynamodb_import_data_files in {elapse:.2f} seconds.")
+
+
+@logger.emoji_block(
+    msg="Create new DynamoDB by importing data from S3",
+    emoji="📥",
+)
+def import_dynamodb_data(
+    snapshot_id: str,
+    lang_code: LangCodeEnum,
+    _first_k_file: T.Optional[int] = None,
+    _first_k_url: T.Optional[int] = None,
+):
+    """
+    **功能**
+
+    我们会定期从 sitemap.xml 中下载网站上所有的 URL 的列表, 然后将其作为待爬 URL 插入到
+    DynamoDB 中. 在第一次创建 DynamoDB table 时, 由于数据量很大 (大约 35w+ 条数据),
+    所以直接用 Batch write API 写入数据的效率并不高.
+
+    一个比较好的做法是用
+    `import from S3 <https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/S3DataImport.HowItWorks.html>`_
+    功能, 先将数据写入 S3, 然后再从 S3 中导入到 DynamoDB 中. 这样做的好处很多:
+
+    1. 速度比直接用 Batch write API 快很多.
+    2. 可以并行执行, 使得速度更快.
+    3. 用 import 写入数据的收费标准比 Batch write API 便宜 1/4.
+
+    **插入顺序**
+
+    在插入的时候, 优先插入数字小的 sitemap_items_*.xml.gz 文件 (比较旧的文件). 这样能保证
+    比较新的 url 会有比较新的 update time, 这样在 query 的时候用 older_task_first = False
+    可以优先筛选出比较新的 url. 由于我们每次更新了 sitemap.xml 之后都会获得新的 URL, 我们
+    也希望优先下载新的 URL, 所以这个插入顺序刚好能满足我们的需求.
+    """
     klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
     klass.set_connection(bsm)
     logger.info(f"Working on table {klass.Meta.table_name!r}")
@@ -74,76 +222,29 @@ def import_dynamodb_table(
         logger.info("wait 15 seconds for table to be deleted ...")
         time.sleep(15)
 
-    path_list = sitemap_snapshot.get_item_xml_list()
-    if _first_k_file:  # pragma: no cover
-        path_list = path_list[:_first_k_file]
-    with logger.indent():
-        logger.info(f"Got {len(path_list)} xml file to insert")
-    logger.info("")
+    with logger.nested():
+        create_dynamodb_import_data_files(
+            snapshot_id=snapshot_id,
+            lang_code=lang_code,
+            _first_k_file=_first_k_file,
+            _first_k_url=_first_k_url,
+        )
 
-    path_temp_json = dir_missav.joinpath("import_dynamodb_table_temp.json")
-    path_temp_json_gzip = dir_missav.joinpath("import_dynamodb_table_temp.json.gz")
-    path_temp_json.remove_if_exists()
-    logger.info("Write import dynamodb table data to temp json file")
-    with logger.indent():
-        logger.info(f"preview at: file://{path_temp_json}")
-    logger.info("")
-    start_time = get_utc_now()
-    i = 0
-    with path_temp_json.open("a") as f:
-        for path in path_list:
-            logger.info(f"Working on {path.basename} file")
-            item_url_list = parse_item_xml(path)
-            filtered_item_url_list = ItemUrl.filter_by_lang(
-                item_url_list=item_url_list,
-                lang_code=lang_code,
-            )
-            if _first_k_url:  # pragma: no cover
-                filtered_item_url_list = filtered_item_url_list[:_first_k_url]
-            with logger.indent():
-                logger.info(f"Got {len(filtered_item_url_list)} url to insert")
-
-            for item in filtered_item_url_list:
-                i += 1
-                create_time = start_time + timedelta(microseconds=i)
-                task = klass.make(
-                    task_id=item.url, create_time=create_time, update_time=create_time
-                )
-                f.write(json.dumps({"Item": task.serialize()}) + "\n")
-    logger.info(f"Got {i} DynamoDB items in total to import.")
-    logger.info("")
-
-    path_temp_json_gzip.write_bytes(gzip.compress(path_temp_json.read_bytes()))
-
-    s3path_temp_json_gzip = config.env.s3path_missav_import_dynamodb_table_temp_json_gz
-    logger.info("Upload temp json file to S3")
-    with logger.indent():
-        logger.info(f"preview at: {s3path_temp_json_gzip.console_url}")
-    s3path_temp_json_gzip.upload_file(
-        path=str(path_temp_json_gzip),
-        overwrite=True,
-        bsm=bsm,
-        extra_args=dict(
-            ContentType=ContentTypeEnum.app_gzip,
-            Metadata={
-                "sitemap_snapshot_id": snapshot_id,
-                "lang_code": lang_code.name,
-            },
-        ),
-    )
-
-    md5 = hashes.of_file(
-        str(path_temp_json_gzip),
-        algo=HashAlgoEnum.md5,
-        hexdigest=True,
-    )
     now = get_utc_now()
-    client_token = str(now.timestamp() // 300) + "-" + md5
+    client_token = "{}-{}-{}-{}".format(
+        str(now.timestamp() // 300),
+        snapshot_id,
+        _first_k_url,
+        _first_k_file,
+    )
+    s3dir_temp = config.env.s3dir_missav_dynamodb_import_data.joinpath(
+        snapshot_id
+    ).to_dir()
     res = bsm.dynamodb_client.import_table(
         ClientToken=client_token,
         S3BucketSource=dict(
-            S3Bucket=s3path_temp_json_gzip.bucket,
-            S3KeyPrefix=s3path_temp_json_gzip.key,
+            S3Bucket=s3dir_temp.bucket,
+            S3KeyPrefix=s3dir_temp.key,
         ),
         InputFormat="DYNAMODB_JSON",
         InputCompressionType="GZIP",
@@ -188,71 +289,15 @@ def import_dynamodb_table(
 
 
 @logger.emoji_block(
-    msg="Insert todo List to DynamoDB",
-    emoji="📥",
-)
-def insert_todo_list(
-    snapshot_id: str,
-    lang_code: LangCodeEnum,
-    export_arn: T.Optional[str] = None,
-):
-    """
-    **功能**
-
-    我们会定期从 sitemap.xml 中下载网站上所有的 URL 的列表, 然后将其作为待爬 URL 插入到
-    DynamoDB 中.
-
-    **插入顺序**
-
-    在插入的时候, 优先插入数字小的 sitemap_items_*.xml.gz 文件 (比较旧的文件). 这样能保证
-    比较新的 url 会有比较新的 update time, 这样在 query 的时候用 older_task_first = False
-    可以优先筛选出比较新的 url. 由于我们每次更新了 sitemap.xml 之后都会获得新的 URL, 我们
-    也希望优先下载新的 URL, 所以这个插入顺序刚好能满足我们的需求.
-
-    **Sitemap 更新策略**
-
-    由于插入新 URL 是一个比较
-
-    :param snapshot_id: sitemap 的 MD5 哈希值
-    :param lang_code: 语言代码, 这会决定数据会插入到哪个表中
-    :param export_arn: 如果你的 DynamoDB 中已经有很多数据了, 由于用 DynamoDB 直接
-        filter 哪些 url 已经存在哪些不存在不是很方便, 所以会提前将数据导出到 S3 中.
-    """
-    sitemap_snapshot = SiteMapSnapshot.new(md5=snapshot_id)
-    klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
-    klass.set_connection(bsm)
-    logger.info(f"working on table {klass.Meta.table_name!r}")
-    with klass.batch_write() as batch:
-        # filter by only
-        if export_arn:
-            raise NotImplementedError
-        else:
-            path_list = sitemap_snapshot.get_item_xml_list()
-            path_list = path_list[:1]
-            logger.info(f"Got {len(path_list)} xml file to insert")
-            for path in path_list:
-                logger.info(f"Working on {path.basename} file")
-                item_url_list = parse_item_xml(path)
-                filtered_item_url_list = ItemUrl.filter_by_lang(
-                    item_url_list, lang_code
-                )
-                filtered_item_url_list = filtered_item_url_list[:1000]
-                with logger.indent():
-                    logger.info(f"Got {len(filtered_item_url_list)} url to insert")
-                for item in filtered_item_url_list:
-                    task = klass.make_and_save(task_id=item.url)
-                    batch.save(task)
-
-
-@logger.emoji_block(
-    msg="Crawl todo",
+    msg="Crawl pending tasks",
     emoji="🕸",
 )
-def crawl_todo(
+def crawl_pending_tasks(
     lang_code: LangCodeEnum,
 ):
     """
     **功能**
+
     去 DynamoDB 中找到未完成的任务, 并执行下载任务.
 
     **Crawler 的调度策略**
@@ -269,7 +314,8 @@ def crawl_todo(
     ``javlibrary_crawler.sites.missav.constants.N_PENDING_SHARD`` 中定义了我们有 10 个 shard.
 
     所以我们在 query_for_unfinished 的时候设定的 LIMIT 等于 435 / 10 = 43.5, 我们向上取整, 得到 44.
-    这样可以大约每次运行都会处理 435 个任务, 避免从 DynamoDB 中读取过多的数据.
+    这样可以大约每次运行 GitHub Action, 在 870 秒内都会处理完 435 个任务. 这样既避免了从
+    DynamoDB 中读取过多的数据, 也避免了两个 Job Run 同时运行导致的资源竞争.
     """
     klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
     klass.set_connection(bsm)
@@ -280,12 +326,14 @@ def crawl_todo(
     LIMIT = math.ceil(max_job_run_time / TASK_PROCESSING_TIME / N_PENDING_SHARD)
     # LIMIT = 1 # for debug only
 
+    # Get list of unfinished (pending and failed) tasks
     task_list: T.List[BaseTask] = klass.query_for_unfinished(
         limit=LIMIT,
         older_task_first=False,
     ).all()
     logger.info(f"Got {len(task_list)} URL to crawl.")
 
+    # figure out GitHub action or local run start time
     if runtime.is_github_action:
         g = Github()
         github_run_id = int(os.environ["GITHUB_RUN_ID"])
@@ -293,20 +341,22 @@ def crawl_todo(
         start_at = wf_run.run_started_at
     else:
         start_at = get_utc_now()
-
-    # the max time we can spend on each download task
-    each_download_consumed_time = 5
+    # figure out expected job run end time
     end_at = start_at + timedelta(seconds=max_job_run_time)
+
+    # process each task
     for task in task_list:
         now = get_utc_now()
         logger.info(f"====== Working on {task.url} ======")
         logger.info(f"now is {now}, this job will end at {end_at}")
+        # if we are running out of time, stop the job
         if now >= end_at:
             logger.info("Time is up!")
             break
 
+        # if we don't have enough time for the next job, stop this job run
         how_many_time_left = (end_at - now).total_seconds()
-        if how_many_time_left < each_download_consumed_time:
+        if how_many_time_left < TASK_PROCESSING_TIME:
             logger.info("Time is up!")
             break
 
@@ -317,6 +367,8 @@ def crawl_todo(
             ) as exec_ctx:
                 task_on_the_fly: BaseTask = exec_ctx.task
                 task_on_the_fly.do_download_task()  # this function has auto retry
+        # we don't want to stop the job run because of MalformedHtmlError
+        # (mostly ServerSide error)
         except MalformedHtmlError as e:
             pass
         except Exception as e:
@@ -493,3 +545,60 @@ def extract_video_details(
     #     older_task_first=True,
     # ):
     #     print(job.video_detail)
+
+
+@logger.emoji_block(
+    msg="Insert pending tasks to DynamoDB",
+    emoji="📥",
+)
+def insert_pending_tasks(
+    snapshot_id: str,
+    lang_code: LangCodeEnum,
+    export_arn: str,
+):
+    """
+    **功能**
+
+    我们会定期从最新的 sitemap.xml 中下载网站上所有的 URL 的列表, 然后将 DynamoDB 中
+    没有的 URL 都作为 pending task 写入到 DynamoDB 中.
+
+    **插入顺序**
+
+    在插入的时候, 优先插入数字小的 sitemap_items_*.xml.gz 文件 (比较旧的文件). 这样能保证
+    比较新的 url 会有比较新的 update time, 这样在 query 的时候用 older_task_first = False
+    可以优先筛选出比较新的 url. 由于我们每次更新了 sitemap.xml 之后都会获得新的 URL, 我们
+    也希望优先下载新的 URL, 所以这个插入顺序刚好能满足我们的需求.
+
+    **Sitemap 更新策略**
+
+    由于插入新 URL 是一个比较
+
+    :param snapshot_id: sitemap 的 MD5 哈希值
+    :param lang_code: 语言代码, 这会决定数据会插入到哪个表中
+    :param export_arn: 如果你的 DynamoDB 中已经有很多数据了, 由于用 DynamoDB 直接
+        filter 哪些 url 已经存在哪些不存在不是很方便, 所以会提前将数据导出到 S3 中.
+    """
+    sitemap_snapshot = SiteMapSnapshot.new(md5=snapshot_id)
+    klass: T.Type[BaseTask] = lang_to_step1_mapping[lang_code.value]
+    klass.set_connection(bsm)
+    logger.info(f"working on table {klass.Meta.table_name!r}")
+    with klass.batch_write() as batch:
+        # filter by only
+        if export_arn:
+            raise NotImplementedError
+        else:
+            path_list = sitemap_snapshot.get_item_xml_list()
+            path_list = path_list[:1]
+            logger.info(f"Got {len(path_list)} xml file to insert")
+            for path in path_list:
+                logger.info(f"Working on {path.basename} file")
+                item_url_list = parse_item_xml(path)
+                filtered_item_url_list = ItemUrl.filter_by_lang(
+                    item_url_list, lang_code
+                )
+                filtered_item_url_list = filtered_item_url_list[:1000]
+                with logger.indent():
+                    logger.info(f"Got {len(filtered_item_url_list)} url to insert")
+                for item in filtered_item_url_list:
+                    task = klass.make_and_save(task_id=item.url)
+                    batch.save(task)

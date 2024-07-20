@@ -7,7 +7,7 @@
 
 import javlibrary_crawler.sites.missav.api as missav
 
-missav.crawl_todo(
+missav.crawl_pending_tasks(
     lang_code=missav.LangCodeEnum.cn,
 )
 
